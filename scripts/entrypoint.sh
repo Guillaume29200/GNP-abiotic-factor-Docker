@@ -1,67 +1,85 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -euo pipefail
 
-echo "=================================================="
-echo " GSH Abiotic Factor Dedicated Server"
-echo " Standardized Docker Image"
-echo "=================================================="
+export HOME=/home/gnp
+export USER=gnp
 
-# Lowercase aliases for GSH if needed
-export GSH_TZ="${GSH_TZ:-${gsh_tz:-Europe/Paris}}"
-export GSH_PUID="${GSH_PUID:-${gsh_puid:-1000}}"
-export GSH_PGID="${GSH_PGID:-${gsh_pgid:-1000}}"
+# Lowercase aliases for GNP if needed
+export GNP_TZ="${GNP_TZ:-${gnp_tz:-Europe/Paris}}"
+export GNP_PUID="${GNP_PUID:-${gnp_puid:-1000}}"
+export GNP_PGID="${GNP_PGID:-${gnp_pgid:-1000}}"
 
-export GSH_STEAM_APP_ID="${GSH_STEAM_APP_ID:-${gsh_steam_app_id:-2857200}}"
-export GSH_STEAM_USER="${GSH_STEAM_USER:-${gsh_steam_user:-anonymous}}"
-export GSH_STEAM_PASSWORD="${GSH_STEAM_PASSWORD:-${gsh_steam_password:-}}"
-export GSH_GAME_UPDATE="${GSH_GAME_UPDATE:-${gsh_game_update:-true}}"
-export GSH_VALIDATE_FILES="${GSH_VALIDATE_FILES:-${gsh_validate_files:-true}}"
-export GSH_STEAM_FORCE_PLATFORM="${GSH_STEAM_FORCE_PLATFORM:-${gsh_steam_force_platform:-windows}}"
+export GNP_STEAM_APP_ID="${GNP_STEAM_APP_ID:-${gnp_steam_app_id:-2857200}}"
+export GNP_STEAM_USER="${GNP_STEAM_USER:-${gnp_steam_user:-anonymous}}"
+export GNP_STEAM_PASSWORD="${GNP_STEAM_PASSWORD:-${gnp_steam_password:-}}"
+export GNP_GAME_UPDATE="${GNP_GAME_UPDATE:-${gnp_game_update:-true}}"
+export GNP_VALIDATE_FILES="${GNP_VALIDATE_FILES:-${gnp_validate_files:-true}}"
+export GNP_STEAM_FORCE_PLATFORM="${GNP_STEAM_FORCE_PLATFORM:-${gnp_steam_force_platform:-windows}}"
 
-export GSH_SERVER_NAME="${GSH_SERVER_NAME:-${gsh_server_name:-GSH Abiotic Factor Server}}"
-export GSH_SERVER_PASSWORD="${GSH_SERVER_PASSWORD:-${gsh_server_password:-password}}"
-export GSH_ADMIN_PASSWORD="${GSH_ADMIN_PASSWORD:-${gsh_admin_password:-}}"
-export GSH_MAX_PLAYERS="${GSH_MAX_PLAYERS:-${gsh_max_players:-6}}"
-export GSH_WORLD_SAVE_NAME="${GSH_WORLD_SAVE_NAME:-${gsh_world_save_name:-Cascade}}"
+export GNP_SERVER_NAME="${GNP_SERVER_NAME:-${gnp_server_name:-GNP Abiotic Factor Server}}"
+export GNP_SERVER_PASSWORD="${GNP_SERVER_PASSWORD:-${gnp_server_password:-}}"
+export GNP_ADMIN_PASSWORD="${GNP_ADMIN_PASSWORD:-${gnp_admin_password:-}}"
+export GNP_MAX_PLAYERS="${GNP_MAX_PLAYERS:-${gnp_max_players:-6}}"
+export GNP_WORLD_SAVE_NAME="${GNP_WORLD_SAVE_NAME:-${gnp_world_save_name:-Cascade}}"
 
-export GSH_GAME_PORT="${GSH_GAME_PORT:-${gsh_game_port:-7777}}"
-export GSH_QUERY_PORT="${GSH_QUERY_PORT:-${gsh_query_port:-27015}}"
+export GNP_GAME_PORT="${GNP_GAME_PORT:-${gnp_game_port:-7777}}"
+export GNP_QUERY_PORT="${GNP_QUERY_PORT:-${gnp_query_port:-27015}}"
 
-export GSH_USE_PERF_THREADS="${GSH_USE_PERF_THREADS:-${gsh_use_perf_threads:-true}}"
-export GSH_NO_ASYNC_LOADING_THREAD="${GSH_NO_ASYNC_LOADING_THREAD:-${gsh_no_async_loading_thread:-true}}"
-export GSH_LAN_ONLY="${GSH_LAN_ONLY:-${gsh_lan_only:-false}}"
-export GSH_PLATFORM_LIMITED="${GSH_PLATFORM_LIMITED:-${gsh_platform_limited:-}}"
-export GSH_MULTIHOME="${GSH_MULTIHOME:-${gsh_multihome:-}}"
-export GSH_USE_LOCAL_IPS="${GSH_USE_LOCAL_IPS:-${gsh_use_local_ips:-false}}"
-export GSH_SANDBOX_INI_PATH="${GSH_SANDBOX_INI_PATH:-${gsh_sandbox_ini_path:-}}"
-export GSH_ADMIN_INI_PATH="${GSH_ADMIN_INI_PATH:-${gsh_admin_ini_path:-}}"
+export GNP_USE_PERF_THREADS="${GNP_USE_PERF_THREADS:-${gnp_use_perf_threads:-true}}"
+export GNP_DISABLE_ASYNC_LOADING_THREAD="${GNP_DISABLE_ASYNC_LOADING_THREAD:-${gnp_disable_async_loading_thread:-false}}"
+export GNP_NO_ASYNC_LOADING_THREAD="${GNP_NO_ASYNC_LOADING_THREAD:-${gnp_no_async_loading_thread:-false}}"
+export GNP_LAN_ONLY="${GNP_LAN_ONLY:-${gnp_lan_only:-false}}"
+export GNP_PLATFORM_LIMITED="${GNP_PLATFORM_LIMITED:-${gnp_platform_limited:-}}"
+export GNP_MULTIHOME="${GNP_MULTIHOME:-${gnp_multihome:-}}"
+export GNP_USE_LOCAL_IPS="${GNP_USE_LOCAL_IPS:-${gnp_use_local_ips:-false}}"
+export GNP_SANDBOX_INI_PATH="${GNP_SANDBOX_INI_PATH:-${gnp_sandbox_ini_path:-Config/WindowsServer/GNPSandboxSettings.ini}}"
+export GNP_ADMIN_INI_PATH="${GNP_ADMIN_INI_PATH:-${gnp_admin_ini_path:-}}"
+export GNP_WRITE_SANDBOX_CONFIG="${GNP_WRITE_SANDBOX_CONFIG:-${gnp_write_sandbox_config:-true}}"
 
-export GSH_USE_WINE="${GSH_USE_WINE:-${gsh_use_wine:-true}}"
-export GSH_WINEPREFIX="${GSH_WINEPREFIX:-${gsh_wineprefix:-/opt/wine/abiotic-factor}}"
-export GSH_WINEARCH="${GSH_WINEARCH:-${gsh_winearch:-win64}}"
-export GSH_DISPLAY="${GSH_DISPLAY:-${gsh_display:-:99}}"
-export GSH_XVFB_RESOLUTION="${GSH_XVFB_RESOLUTION:-${gsh_xvfb_resolution:-1024x768x16}}"
+export GNP_USE_WINE="${GNP_USE_WINE:-${gnp_use_wine:-true}}"
+export GNP_WINEPREFIX="${GNP_WINEPREFIX:-${gnp_wineprefix:-/opt/wine/abiotic-factor}}"
+export GNP_WINEARCH="${GNP_WINEARCH:-${gnp_winearch:-win64}}"
+export GNP_DISPLAY="${GNP_DISPLAY:-${gnp_display:-:99}}"
+export GNP_XVFB_RESOLUTION="${GNP_XVFB_RESOLUTION:-${gnp_xvfb_resolution:-1024x768x16}}"
+export GNP_WINEDEBUG="${GNP_WINEDEBUG:-${gnp_winedebug:--all}}"
 
-export GSH_SERVER_EXE="${GSH_SERVER_EXE:-${gsh_server_exe:-AbioticFactorServer-Win64-Shipping.exe}}"
-export GSH_START_ARGS="${GSH_START_ARGS:-${gsh_start_args:-}}"
+export GNP_SERVER_EXE="${GNP_SERVER_EXE:-${gnp_server_exe:-AbioticFactorServer.exe}}"
+export GNP_START_ARGS="${GNP_START_ARGS:-${gnp_start_args:-}}"
 
-ln -snf "/usr/share/zoneinfo/${GSH_TZ}" /etc/localtime || true
-echo "${GSH_TZ}" > /etc/timezone || true
+ln -snf "/usr/share/zoneinfo/${GNP_TZ}" /etc/localtime || true
+echo "${GNP_TZ}" > /etc/timezone || true
 
-if [ "$(id -u gsh)" != "${GSH_PUID}" ]; then
-    usermod -u "${GSH_PUID}" gsh
+if [ "$(id -u gnp)" != "${GNP_PUID}" ]; then
+    usermod -u "${GNP_PUID}" gnp
 fi
 
-if [ "$(id -g gsh)" != "${GSH_PGID}" ]; then
-    groupmod -g "${GSH_PGID}" gsh
+if [ "$(id -g gnp)" != "${GNP_PGID}" ]; then
+    groupmod -g "${GNP_PGID}" gnp
 fi
 
-chown -R gsh:gsh /opt/steam /opt/games /opt/wine
+mkdir -p /opt/steamcmd /opt/games/server /opt/games/config /opt/wine /home/gnp /tmp/.X11-unix /tmp/dumps
+chmod 1777 /tmp/.X11-unix || true
+chown -R gnp:gnp /opt/steamcmd /opt/games /opt/wine /home/gnp /tmp/dumps
 
-if [ "${GSH_GAME_UPDATE}" = "true" ]; then
-    gosu gsh /scripts/steam-update.sh
+cat <<EOF
+============================================================
+🚀 Démarrage image GNP - Abiotic Factor
+➡️ User       : GNP (${GNP_PUID}:${GNP_PGID})
+➡️ HOME       : /home/gnp
+➡️ Server dir : /opt/games/server
+➡️ Config dir : /opt/games/config
+➡️ SteamCMD   : /opt/steamcmd
+➡️ Wine prefix: ${GNP_WINEPREFIX}
+➡️ Display    : ${GNP_DISPLAY}
+============================================================
+EOF
+
+if [ "${GNP_GAME_UPDATE}" = "true" ]; then
+    gosu gnp /scripts/steam-update.sh
+else
+    echo "⏭️ Mise à jour SteamCMD désactivée (GNP_GAME_UPDATE=false)."
 fi
 
-gosu gsh /scripts/write-config.sh
+gosu gnp /scripts/write-config.sh
 
-exec gosu gsh /scripts/start-server.sh
+exec gosu gnp /scripts/start-server.sh

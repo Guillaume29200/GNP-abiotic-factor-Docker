@@ -1,105 +1,183 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -euo pipefail
 
 SERVER_DIR="/opt/games/server"
-EXE_PATH="${SERVER_DIR}/AbioticFactor/Binaries/Win64/${GSH_SERVER_EXE}"
+REQUESTED_EXE="${GNP_SERVER_EXE:-AbioticFactorServer.exe}"
+EXE_PATH=""
 
-export WINEPREFIX="${GSH_WINEPREFIX}"
-export WINEARCH="${GSH_WINEARCH}"
-export DISPLAY="${GSH_DISPLAY}"
+export HOME=/home/gnp
+export USER=gnp
+export WINEPREFIX="${GNP_WINEPREFIX}"
+export WINEARCH="${GNP_WINEARCH}"
+export DISPLAY="${GNP_DISPLAY}"
+export WINEDEBUG="${GNP_WINEDEBUG:--all}"
 
-echo "--------------------------------------------------"
-echo " Starting Abiotic Factor Dedicated Server"
-echo " Server dir: ${SERVER_DIR}"
-echo " Exe: ${EXE_PATH}"
-echo " Wine prefix: ${WINEPREFIX}"
-echo " Display: ${DISPLAY}"
-echo "--------------------------------------------------"
+mkdir -p "${WINEPREFIX}" /tmp/.X11-unix /tmp/dumps
 
-mkdir -p "${WINEPREFIX}"
+cat <<EOF
+============================================================
+🖥️ Démarrage Xvfb
+➡️ Display    : ${DISPLAY}
+➡️ Resolution : ${GNP_XVFB_RESOLUTION}
+============================================================
+EOF
 
-wineboot --init || true
-
-Xvfb "${DISPLAY}" -screen 0 "${GSH_XVFB_RESOLUTION}" &
+Xvfb "${DISPLAY}" -screen 0 "${GNP_XVFB_RESOLUTION}" -nolisten tcp >/tmp/xvfb-abiotic.log 2>&1 &
 XVFB_PID=$!
 
 cleanup() {
-    echo "Stopping Abiotic Factor..."
+    echo "🛑 Arrêt Abiotic Factor / Xvfb..."
     kill "${XVFB_PID}" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 
-if [ ! -f "${EXE_PATH}" ]; then
-    echo "ERROR: Cannot find ${EXE_PATH}"
-    echo "Steam update may have failed or Abiotic Factor server structure changed."
-    find "${SERVER_DIR}" -maxdepth 6 -type f -iname "*.exe" | sort || true
+for i in $(seq 1 30); do
+    if xdpyinfo -display "${DISPLAY}" >/dev/null 2>&1; then
+        echo "✅ Xvfb prêt."
+        break
+    fi
+    sleep 1
+    if [ "$i" = "30" ]; then
+        echo "❌ Xvfb n'est pas prêt après 30 secondes."
+        cat /tmp/xvfb-abiotic.log || true
+        exit 1
+    fi
+done
+
+cat <<EOF
+============================================================
+🍷 Initialisation Wine
+➡️ WINEPREFIX : ${WINEPREFIX}
+➡️ WINEARCH   : ${WINEARCH}
+➡️ WINEDEBUG  : ${WINEDEBUG}
+============================================================
+EOF
+
+if [ ! -f "${WINEPREFIX}/system.reg" ]; then
+    wineboot --init >/tmp/wineboot-abiotic.log 2>&1 || true
+else
+    echo "✅ Wine prefix déjà initialisé, wineboot ignoré."
+fi
+
+cat <<EOF
+============================================================
+🔎 Recherche exécutable Abiotic Factor
+➡️ Demandé : ${REQUESTED_EXE}
+============================================================
+EOF
+
+CANDIDATES=()
+
+if [[ "${REQUESTED_EXE}" = /* ]]; then
+    CANDIDATES+=("${REQUESTED_EXE}")
+else
+    CANDIDATES+=("${SERVER_DIR}/${REQUESTED_EXE}")
+    CANDIDATES+=("${SERVER_DIR}/AbioticFactor/Binaries/Win64/${REQUESTED_EXE}")
+fi
+
+# Fallbacks connus depuis les builds actuels SteamCMD.
+CANDIDATES+=("${SERVER_DIR}/AbioticFactorServer.exe")
+CANDIDATES+=("${SERVER_DIR}/AbioticFactor/Binaries/Win64/AbioticFactorServer-Win64-Shipping.exe")
+
+for candidate in "${CANDIDATES[@]}"; do
+    echo "➡️ Test exe : ${candidate}"
+    if [ -f "${candidate}" ]; then
+        EXE_PATH="${candidate}"
+        break
+    fi
+done
+
+if [ -z "${EXE_PATH}" ]; then
+    echo "❌ Aucun exécutable Abiotic Factor valide trouvé."
+    echo "➡️ Steam update peut avoir échoué ou la structure du jeu a changé."
+    echo "➡️ Exécutables trouvés :"
+    find "${SERVER_DIR}" -maxdepth 7 -type f -iname "*.exe" | sort || true
     exit 1
 fi
+
+echo "✅ Exécutable utilisé : ${EXE_PATH}"
 
 ARGS=()
 ARGS+=("-log")
 ARGS+=("-newconsole")
 
-if [ "${GSH_USE_PERF_THREADS}" = "true" ]; then
+if [ "${GNP_USE_PERF_THREADS:-true}" = "true" ]; then
     ARGS+=("-useperfthreads")
 fi
 
-if [ "${GSH_NO_ASYNC_LOADING_THREAD}" = "true" ]; then
+if [ "${GNP_DISABLE_ASYNC_LOADING_THREAD:-false}" = "true" ]; then
+    ARGS+=("-DisableAsyncLoadingThread")
+elif [ "${GNP_NO_ASYNC_LOADING_THREAD:-false}" = "true" ]; then
+    # Ancien paramètre conservé pour compatibilité avec les anciens templates GNP.
     ARGS+=("-NoAsyncLoadingThread")
 fi
 
-if [ "${GSH_LAN_ONLY}" = "true" ]; then
+if [ "${GNP_LAN_ONLY:-false}" = "true" ]; then
     ARGS+=("-LANOnly")
 fi
 
-if [ "${GSH_USE_LOCAL_IPS}" = "true" ]; then
+if [ "${GNP_USE_LOCAL_IPS:-false}" = "true" ]; then
     ARGS+=("-UseLocalIPs")
 fi
 
-if [ -n "${GSH_PLATFORM_LIMITED}" ]; then
-    ARGS+=("-PlatformLimited=${GSH_PLATFORM_LIMITED}")
+if [ -n "${GNP_PLATFORM_LIMITED:-}" ]; then
+    ARGS+=("-PlatformLimited=${GNP_PLATFORM_LIMITED}")
 fi
 
-if [ -n "${GSH_MULTIHOME}" ]; then
-    ARGS+=("-MultiHome=${GSH_MULTIHOME}")
+if [ -n "${GNP_MULTIHOME:-}" ]; then
+    ARGS+=("-MultiHome=${GNP_MULTIHOME}")
 fi
 
-ARGS+=("-MaxServerPlayers=${GSH_MAX_PLAYERS}")
-ARGS+=("-PORT=${GSH_GAME_PORT}")
-ARGS+=("-QueryPort=${GSH_QUERY_PORT}")
+ARGS+=("-MaxServerPlayers=${GNP_MAX_PLAYERS}")
+ARGS+=("-PORT=${GNP_GAME_PORT}")
+ARGS+=("-QueryPort=${GNP_QUERY_PORT}")
 
-if [ -n "${GSH_SERVER_PASSWORD}" ]; then
-    ARGS+=("-ServerPassword=${GSH_SERVER_PASSWORD}")
+if [ -n "${GNP_SERVER_PASSWORD:-}" ]; then
+    ARGS+=("-ServerPassword=${GNP_SERVER_PASSWORD}")
 fi
 
-if [ -n "${GSH_ADMIN_PASSWORD}" ]; then
-    ARGS+=("-AdminPassword=${GSH_ADMIN_PASSWORD}")
+if [ -n "${GNP_ADMIN_PASSWORD:-}" ]; then
+    ARGS+=("-AdminPassword=${GNP_ADMIN_PASSWORD}")
 fi
 
-ARGS+=("-SteamServerName=${GSH_SERVER_NAME}")
-ARGS+=("-WorldSaveName=${GSH_WORLD_SAVE_NAME}")
+ARGS+=("-SteamServerName=${GNP_SERVER_NAME}")
+ARGS+=("-WorldSaveName=${GNP_WORLD_SAVE_NAME}")
 
-if [ -n "${GSH_SANDBOX_INI_PATH}" ]; then
-    ARGS+=("-SandboxIniPath=${GSH_SANDBOX_INI_PATH}")
+if [ -n "${GNP_SANDBOX_INI_PATH:-}" ]; then
+    ARGS+=("-SandboxIniPath=${GNP_SANDBOX_INI_PATH}")
 fi
 
-if [ -n "${GSH_ADMIN_INI_PATH}" ]; then
-    ARGS+=("-AdminIniPath=${GSH_ADMIN_INI_PATH}")
+if [ -n "${GNP_ADMIN_INI_PATH:-}" ]; then
+    ARGS+=("-AdminIniPath=${GNP_ADMIN_INI_PATH}")
 fi
 
-# Community docker uses -tcp; keep it for compatibility.
-ARGS+=("-tcp")
-
-if [ -n "${GSH_START_ARGS}" ]; then
+if [ -n "${GNP_START_ARGS:-}" ]; then
     # shellcheck disable=SC2206
-    EXTRA_ARGS=( ${GSH_START_ARGS} )
+    EXTRA_ARGS=( ${GNP_START_ARGS} )
     ARGS+=("${EXTRA_ARGS[@]}")
 fi
 
+cat <<EOF
+============================================================
+🎮 Démarrage Abiotic Factor Dedicated Server
+➡️ Server dir      : ${SERVER_DIR}
+➡️ Exe             : ${EXE_PATH}
+➡️ Wine prefix     : ${WINEPREFIX}
+➡️ Display         : ${DISPLAY}
+➡️ Server name     : ${GNP_SERVER_NAME}
+➡️ World save      : ${GNP_WORLD_SAVE_NAME}
+➡️ Max players     : ${GNP_MAX_PLAYERS}
+➡️ Game port       : ${GNP_GAME_PORT}/udp
+➡️ Query port      : ${GNP_QUERY_PORT}/udp
+➡️ Platform limit  : ${GNP_PLATFORM_LIMITED:-crossplay}
+➡️ Sandbox ini     : ${GNP_SANDBOX_INI_PATH:-default world file}
+➡️ Start args      : ${GNP_START_ARGS:-}
+============================================================
+EOF
+
 cd "$(dirname "${EXE_PATH}")"
 
-echo "Launch command:"
-printf 'wine %q ' "${EXE_PATH}"
+printf '➡️ Commande finale : wine %q ' "${EXE_PATH}"
 printf '%q ' "${ARGS[@]}"
 echo
 
