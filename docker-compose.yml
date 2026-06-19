@@ -1,56 +1,59 @@
-version: "3.8"
-
-services:
+﻿services:
   abiotic-factor:
-    image: slymer29/gsh-abiotic-factor:latest
-    container_name: gsh-abiotic-factor
+    image: slymer29/gnp-abiotic-factor:latest
+    container_name: gnp-abiotic-factor
     restart: unless-stopped
+    stop_grace_period: 30s
 
     ports:
       - "7777:7777/udp"
       - "27015:27015/udp"
+      - "14001:14001/udp"
 
     environment:
-      GSH_TZ: "Europe/Paris"
-      GSH_PUID: "1000"
-      GSH_PGID: "1000"
+      GNP_TZ: "Europe/Paris"
+      GNP_PUID: "1000"
+      GNP_PGID: "1000"
 
-      GSH_SERVER_NAME: "Mon serveur Abiotic Factor"
-      GSH_SERVER_PASSWORD: "password"
-      GSH_ADMIN_PASSWORD: "changeme"
-      GSH_MAX_PLAYERS: "6"
-      GSH_WORLD_SAVE_NAME: "Cascade"
+      GNP_STEAM_APP_ID: "2857200"
+      GNP_STEAM_USER: "anonymous"
+      GNP_STEAM_PASSWORD: ""
+      GNP_GAME_UPDATE: "true"
+      GNP_VALIDATE_FILES: "false"
+      GNP_STEAM_FORCE_PLATFORM: "windows"
 
-      GSH_GAME_PORT: "7777"
-      GSH_QUERY_PORT: "27015"
+      GNP_SERVER_NAME: "Mon serveur Abiotic Factor"
+      GNP_SERVER_PASSWORD: ""
+      GNP_ADMIN_PASSWORD: ""
+      GNP_MAX_PLAYERS: "6"
+      GNP_WORLD_SAVE_NAME: "Cascade"
 
-      GSH_STEAM_APP_ID: "2857200"
-      GSH_STEAM_USER: "anonymous"
-      GSH_STEAM_PASSWORD: ""
-      GSH_GAME_UPDATE: "true"
-      GSH_VALIDATE_FILES: "true"
-      GSH_STEAM_FORCE_PLATFORM: "windows"
+      GNP_GAME_PORT: "7777"
+      GNP_QUERY_PORT: "27015"
 
-      GSH_USE_PERF_THREADS: "true"
-      GSH_NO_ASYNC_LOADING_THREAD: "true"
-      GSH_LAN_ONLY: "false"
-      GSH_PLATFORM_LIMITED: ""
-      GSH_MULTIHOME: ""
-      GSH_USE_LOCAL_IPS: "false"
-      GSH_SANDBOX_INI_PATH: ""
-      GSH_ADMIN_INI_PATH: ""
+      GNP_USE_PERF_THREADS: "true"
+      GNP_DISABLE_ASYNC_LOADING_THREAD: "false"
+      GNP_NO_ASYNC_LOADING_THREAD: "false"
+      GNP_LAN_ONLY: "false"
+      GNP_PLATFORM_LIMITED: ""
+      GNP_MULTIHOME: ""
+      GNP_USE_LOCAL_IPS: "false"
+      GNP_SANDBOX_INI_PATH: "Config/WindowsServer/GNPSandboxSettings.ini"
+      GNP_ADMIN_INI_PATH: ""
+      GNP_WRITE_SANDBOX_CONFIG: "true"
 
-      GSH_USE_WINE: "true"
-      GSH_WINEPREFIX: "/opt/wine/abiotic-factor"
-      GSH_WINEARCH: "win64"
-      GSH_DISPLAY: ":99"
-      GSH_XVFB_RESOLUTION: "1024x768x16"
+      GNP_USE_WINE: "true"
+      GNP_WINEPREFIX: "/opt/wine/abiotic-factor"
+      GNP_WINEARCH: "win64"
+      GNP_DISPLAY: ":99"
+      GNP_XVFB_RESOLUTION: "1024x768x16"
+      GNP_WINEDEBUG: "-all"
 
-      GSH_SERVER_EXE: "AbioticFactorServer-Win64-Shipping.exe"
-      GSH_START_ARGS: ""
+      GNP_SERVER_EXE: "AbioticFactorServer-Win64-Shipping.exe"
+      GNP_START_ARGS: ""
 
     volumes:
       - ./data/server:/opt/games/server
       - ./data/config:/opt/games/config
       - ./data/wine:/opt/wine
-      - ./data/steam:/opt/steam
+      - ./data/steamcmd:/opt/steamcmd
